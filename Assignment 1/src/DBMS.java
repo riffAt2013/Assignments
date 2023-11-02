@@ -1,41 +1,75 @@
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Collections;
 
+/**
+ * The `DBMS` Database Management System class is responsible for managing student records
+ * and provides operations to insert, query, and delete student information using two different
+ * storage indexes based on student number and overall score.
+ * implements the `DBMSInterface` to define its core functionality.
+ *
+ * @author Rifat Bin Masud
+ */
 public class DBMS implements DBMSInterface {
     private StorageBackendInterface<String, Student> studentNumberIndex;
     private StorageBackendInterface<Integer, Student> overallScoreIndex;
 
+    /**
+     * Constructs a new instance of the `DBMS` class, initializing storage indexes for student
+     * information based on two criteria.
+     * student number and overall score.
+     */
     public DBMS() {
         this.studentNumberIndex = new MyStorageBackend<>();
         this.overallScoreIndex = new MyStorageBackend<>();
     }
 
+    /**
+     * Inserts a student's information into the DBMS, indexing it by student number and overall score.
+     *
+     * @param student The `Student` object which is to be inserted into the database.
+     */
     public void insertStudent(Student student) {
         studentNumberIndex.insert(String.valueOf(student.getStudentNumber().hashCode()), student);
         overallScoreIndex.insert(student.getOverallScore(), student);
     }
 
+    /**
+     * Retrieves a student's information by their student number.
+     *
+     * @param studentNumber The student number for which to retrieve the associated student information.
+     * @return The `Student` object corresponding to the provided student number, or `null` if not found.
+     */
     public Student queryByStudentNumber(String studentNumber) {
         int hashCode = studentNumber.hashCode();
         List<Student> results = studentNumberIndex.search(String.valueOf(hashCode));
         if (!results.isEmpty()) {
-            return results.get(0); // Return the first result if found
+            return results.get(0);
         } else {
-            // Handle the case where the list of results is empty
-            return null; // Or you can throw a custom exception
+            return null;
         }
     }
 
+    /**
+     * Retrieves a list of students with their overall score matching the given score.
+     *
+     * @param score The overall score to search for.
+     * @return A list of `Student` objects with an overall score matching the provided score.
+     */
     public List<Student> queryByScore(int score) {
         return overallScoreIndex.search(score);
     }
 
+/**
+ * Deletes a student's information from the DBMS using their student number and overall score
+ * as keys. Overriding deleteStudent from DBMSInterface.
+ *
+ * @param student The `Student` object to be deleted from the database.
+ */
     @Override
     public void deleteStudent(Student student) {
-        this.studentNumberIndex.delete(student.getStudentNumber());
+        int hashCode = student.getStudentNumber().hashCode();
+        this.studentNumberIndex.delete(String.valueOf(hashCode));
         this.overallScoreIndex.delete(student.getOverallScore());
     }
 }
@@ -45,33 +79,68 @@ interface MyHashFunction<T> {
     int hash(T key);
 }
 
+/**
+ * The `MyStorageBackend` class is used to provide storage and retrieval of key-value
+ * pairs using a Skip List data structure. Implementing `StorageBackendInterface`,
+ *
+ * @param <T> The type of keys used for indexing.
+ * @param <U> The type of values associated with the keys.
+ */
 class MyStorageBackend<T extends Comparable<T>, U> implements StorageBackendInterface<T, U> {
     SkipList<T,U> skipList=new SkipList(3, 0.5f);
+
+    /**
+     * Inserts a key-value pair into the storage backend using a Skip List.
+     *
+     * @param key  The key to index the value.
+     * @param item The value associated with the key.
+     */
     @Override
     public void insert(T key, U item) {
-        skipList.insertElement(key,item);
+        skipList.insertElement(key, item);
     }
 
+    /**
+     * Searches for a value associated with a given key in the storage backend using a Skip List.
+     *
+     * @param key The key to search for in the storage backend.
+     * @return A list of values associated with the provided key, or an empty list if not found.
+     */
     @Override
     public List<U> search(T key) {
         return skipList.Search(key);
     }
 
+    /**
+     * Deletes a key-value pair from the storage backend using a Skip List.
+     *
+     * @param key The key to delete from the storage backend.
+     */
     @Override
     public void delete(T key) {
         skipList.deleteElement(key);
     }
-    // your magical code here
 }
 
-
-// Class to implement node
+/**
+        The `Node` class represents a node in a data structure, which is typically used in a Skip List.
+        * Each node stores a key-value pair, where the key is a comparable element and the value is an associated
+        * data item.
+        *
+        * @param <T> The type of keys used for indexing and comparisons.
+        * @param <U> The type of values associated with the keys.
+        */
 final class Node<T extends Comparable<T>, U> {
     T key;
-
-    // Array to hold pointers to node of different level
-    Node[] forward;
     U student;
+    Node[] forward;
+
+    /**
+     * Constructs a new `Node` with the given key and level.
+     *
+     * @param key    The key associated with this node.
+     * @param level  The level of the node, which determines its position in the data structure.
+     */
     Node(T key, int level)
     {
         this.key = key;
@@ -80,31 +149,38 @@ final class Node<T extends Comparable<T>, U> {
     }
 };
 
-// Class for Skip list
+/**
+ * The `SkipList` class represents a data structure that provides fast search, insertion, and deletion of elements
+ * using a hierarchical structure with multiple levels of linked lists.
+ *
+ * @param <T> The type of keys used for indexing and comparisons extending comparable
+ * @param <U> The type of values associated with the keys.
+ */
 class SkipList<T extends Comparable<T>,U> {
-    // Maximum level for this skip list
     int MAXLVL;
-
-    // P is the fraction of the nodes with level
-    // i pointers also having level i+1 pointers
-    float P;
-
-    // current level of skip list
     int level;
-
-    // pointer to header node
+    float P;
     Node<T, U> header;
 
+    /**
+     * Constructs a new instance of the `SkipList` class with the specified maximum level and P-value.
+     *
+     * @param MAXLVL The maximum level of the skip list.
+     * @param P      The probability for a node to have a pointer at each level.
+     */
     SkipList(int MAXLVL, float P)
     {
         this.MAXLVL = MAXLVL;
         this.P = P;
         level = 0;
-
-        // create header node and initialize key to -1
         header = new Node(-1, MAXLVL);
     }
 
+    /**
+     * Generates a random level for a node based on the given probability P.
+     *
+     * @return The randomly generated level for a node.
+     */
     int randomLevel()
     {
         float r = (float)Math.random();
@@ -116,67 +192,49 @@ class SkipList<T extends Comparable<T>,U> {
         return lvl;
     }
 
+    /**
+     * Creates a new node with the specified key and level.
+     *
+     * @param key   The key associated with the node.
+     * @param level The level of the node.
+     * @return A new node with the specified key and level.
+     */
     Node createNode(T key, int level)
     {
         Node n = new Node(key, level);
         return n;
     }
 
-    // Insert given key in skip list
-
+    /**
+     * Inserts a key-value pair into the skip list.
+     *
+     * @param key   The key to insert.
+     * @param value The value associated with the key.
+     */
     void insertElement(T key, U value)
     {
         Node current = header;
-
-        // create update array and initialize it
         Node update[] = new Node[MAXLVL + 1];
 
-            /* start from highest level of skip list
-                    move the current pointer forward while
-            key is greater than key of node next to
-            current Otherwise inserted current in update
-            and move one level down and continue search
-            */
         for (int i = level; i >= 0; i--) {
             while (current.forward[i] != null && current.forward[i].key.compareTo(key)<0)
                 current = current.forward[i];
             update[i] = current;
         }
 
-            /* reached level 0 and forward pointer to
-            right, which is desired position to
-            insert key.
-            */
         current = current.forward[0];
 
-            /* if current is NULL that means we have reached
-            to end of the level or current's key is not
-            equal to key to insert that means we have to
-            insert node between update[0] and current node
-        */
         if (current == null || current.key != key || Search((T)current.key) != value ) {
-            // Generate a random level for node
             int rlevel = randomLevel();
-
-            // If random level is greater than list's
-            // current level (node with highest level
-            // inserted in list so far), initialize
-            // update value with pointer to header for
-            // further use
             if (rlevel > level) {
                 for (int i = level + 1; i < rlevel + 1;
                      i++)
                     update[i] = header;
-
-                // Update the list current level
                 level = rlevel;
             }
 
-            // create new node with random level
-            // generated
             Node n = createNode(key, rlevel);
             n.student = value;
-            // insert node by rearranging pointers
             for (int i = 0; i <= rlevel; i++) {
                 n.forward[i] = update[i].forward[i];
                 update[i].forward[i] = n;
@@ -186,15 +244,15 @@ class SkipList<T extends Comparable<T>,U> {
         }
     }
 
+    /**
+     * Searches for values associated with a given key in the skip list.
+     *
+     * @param key The key to search for in the skip list.
+     * @return A list of values associated with the provided key, or an empty list if not found.
+     */
     public List<U> Search(T key){
         List<U> results = new ArrayList<>();
         Node current = header;
-
-        /* start from highest level of skip list
-                move the current pointer forward while
-        key is greater than key of node next to
-        current    and move one level down and continue search
-        */
         for (int i = level; i >=0 ; i--) {
             while (current.forward[i] != null && current.forward[i].key.compareTo(key)<0) {
                 current = current.forward[i];
@@ -210,45 +268,34 @@ class SkipList<T extends Comparable<T>,U> {
         }
 
         if (!results.isEmpty()) {
-            return results; // Return a list of results with similar keys
+            return results;
         } else {
-            return Collections.emptyList(); // Return an empty list if key is not found
+            return Collections.emptyList();
         }
-
     }
 
+    /**
+     * Deletes a key-value pair from the skip list.
+     *
+     * @param key The key to delete from the skip list.
+     */
     void deleteElement(T key){
         Node current = header;
-        // create update array and initialize it
         Node[] update = new Node[MAXLVL+1];
 
-            /* start from highest level of skip list
-            move the current pointer forward while
-            key is greater than key of node next to
-            current Otherwise inserted current in update
-            and move one level down and continue search
-            */
         for (int i = level; i >= 0; i--) {
             while (current.forward[i] != null && current.forward[i].key.compareTo(key)<0)
                 current = current.forward[i];
             update[i] = current;
         }
 
-            /* reached level 0 and forward pointer to
-            right, which is desired position to
-            delete key.
-            */
         current = current.forward[0];
-
-        if(current!=null && current.key==key){
-
-            // delete node by rearranging pointers
+        if(current!=null || current.key==key){
             for (int i = 0; i < level; i++) {
                 if (update[i].forward[i] != current)
                     break;
                 update[i].forward[i] = current.forward[i];
             }
-
             //if it was the only node in that level and you deleted it, delete the level
             while(level>0 && header.forward[level] ==null){
                 level --;
@@ -257,21 +304,20 @@ class SkipList<T extends Comparable<T>,U> {
         }
     }
 
-
+    /**
+     * Prints the contents of the skip list, displaying each level with its nodes.
+     */
     void printList() {
         Node current = header;
 
         for (int level = this.level; level >= 0; level--) {
             System.out.print("Level " + level + ": ");
-
-            current = header.forward[level]; // Move to the first node in the current level
-
+            current = header.forward[level];
             while (current != null) {
                 System.out.print("[" + current.key + ": " + current.student + "] ");
                 current = current.forward[level];
             }
-
-            System.out.println(); // Move to the next line for the next level
+            System.out.println();
         }
     }
 }

@@ -23,7 +23,9 @@ public class App {
         database.insertStudent(student5);
         database.insertStudent(student6);
 
-        Student queryResult1 = database.queryByStudentNumber("S1");
+        database.deleteStudent(student2);
+
+        Student queryResult1 = database.queryByStudentNumber("S2");
         List<Student> queryResult2 = database.queryByScore(100);
         List<Student> queryResult3 = database.queryByScore(87);
         List<Student> queryResult4 = Arrays.asList(student3, student6);

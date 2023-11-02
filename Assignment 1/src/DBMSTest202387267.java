@@ -1,7 +1,6 @@
 import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DBMSTest202387267 {
@@ -31,7 +30,6 @@ public class DBMSTest202387267 {
         for (Student student : students) {
             dbms.insertStudent(student);
         }
-
     }
 
     /**
@@ -62,11 +60,18 @@ public class DBMSTest202387267 {
                 && expectedOutput.containsAll(queryOutput));
     }
 
-
-
+    /**
+     * Checking delete using deleteStudent().
+     * We'll insert all the students but delete student2 (Name:S2, Overall Score 98)
+     * The test will pass if queryByScore and queryByStudentNumber both returns null
+     */
     @Test
     public void testCase3() {
-
+        insertTestData();
+        dbms.deleteStudent(student2);
+        Student queryOutput1 = dbms.queryByStudentNumber("S2");
+        List<Student> queryOutput2 = dbms.queryByScore(98);
+        assertNull(queryOutput1);
+        assertTrue(queryOutput2.isEmpty());
     }
-
 }
