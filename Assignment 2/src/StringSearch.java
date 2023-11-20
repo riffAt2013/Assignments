@@ -15,7 +15,7 @@ public class StringSearch extends AbstractStringSearch {
     private String pattern;
 
     /**
-     * Searches for the pattern in the given text.
+     * Searches for a pattern in the given text.
      *
      * @param text The text in which to search for the pattern.
      * @return The index of the first occurrence of the pattern in the text, or -1 if not found.
@@ -28,9 +28,10 @@ public class StringSearch extends AbstractStringSearch {
         int patIterator = 0;
 
         while (textIterator < textLen) {
-            if (patIterator < patLen && (pattern.charAt(patIterator) == '?' || pattern.charAt(patIterator) == text.charAt(textIterator))) {
-                textIterator = textIterator+1;
-                patIterator = patIterator+1;
+            // check for identical character or a wildcard '?'
+            if (patIterator < patLen && ( pattern.charAt(patIterator) == text.charAt(textIterator) || pattern.charAt(patIterator) == '?')) {
+                textIterator = textIterator + 1;
+                patIterator = patIterator + 1;
             } else {
                 if (patIterator == patLen) {
                     return textIterator - patIterator;
@@ -56,8 +57,9 @@ public class StringSearch extends AbstractStringSearch {
         this.pattern = pattern;
         int patLen = pattern.length();
         pmt = new int[patLen];
-        int len = 0;
         int patIterator = 1;
+
+        int len = 0;
 
         while (patIterator < patLen) {
             if (pattern.charAt(patIterator) == pattern.charAt(len) || pattern.charAt(patIterator) == '?') {
