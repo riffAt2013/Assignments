@@ -54,22 +54,22 @@ public class StringSearch extends AbstractStringSearch {
     @Override
     public void preprocessPattern(String pattern) {
         this.pattern = pattern;
-        int m = pattern.length();
-        pmt = new int[m];
-        int i = 1;
-        int ln = 0;
+        int patLen = pattern.length();
+        pmt = new int[patLen];
+        int len = 0;
+        int patIterator = 1;
 
-        while (i < m) {
-            if (pattern.charAt(i) == pattern.charAt(ln) || pattern.charAt(i) == '?') {
-                ln++;
-                pmt[i] = ln;
-                i++;
+        while (patIterator < patLen) {
+            if (pattern.charAt(patIterator) == pattern.charAt(len) || pattern.charAt(patIterator) == '?') {
+                len++;
+                pmt[patIterator] = len;
+                patIterator++;
             } else {
-                if (ln != 0) {
-                    ln = pmt[ln - 1];
+                if (len != 0) {
+                    len = pmt[len - 1];
                 } else {
-                    pmt[i] = 0;
-                    i++;
+                    pmt[patIterator] = 0;
+                    patIterator++;
                 }
             }
         }
