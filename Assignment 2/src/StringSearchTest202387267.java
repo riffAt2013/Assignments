@@ -36,4 +36,15 @@ public class StringSearchTest202387267 {
         int actualResult = search.search(pattern, text);
         assertEquals(expectedResult, actualResult);
     }
+
+    // test for a blank pattern. Expecting a -1 since no processing can be done.
+    @Test
+    public void testFour()
+    {
+        String text = "He's supporting Argentina in the Soccer World Cup!";
+        String pattern = "";
+        int expectedResult = -1;
+        int actualResult = search.search(pattern, text);
+        assertEquals(expectedResult, actualResult);
+    }
 }

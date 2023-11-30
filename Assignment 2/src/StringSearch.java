@@ -22,29 +22,41 @@ public class StringSearch extends AbstractStringSearch {
      */
     @Override
     public int search(String text) {
-        int textLen = text.length();
+        // Checks for a valid pattern length. If length is 0 then there can be no match.
         int patLen = pattern.length();
-        int textIterator = 0;
-        int patIterator = 0;
+        if (patLen == 0)
+            return -1;
 
-        while (textIterator < textLen) {
-            // check for identical character or a wildcard '?'
-            if (patIterator < patLen && ( pattern.charAt(patIterator) == text.charAt(textIterator) || pattern.charAt(patIterator) == '?')) {
-                textIterator = textIterator + 1;
-                patIterator = patIterator + 1;
-            } else {
-                if (patIterator == patLen) {
-                    return textIterator - patIterator;
-                }
-                else if (patIterator > 0) {
-                    patIterator = pmt[patIterator - 1];
-                }else {
-                    textIterator++;
+        else {
+            int textLen = text.length();
+            int textIterator = 0;
+            int patIterator = 0;
+
+            while (textIterator < textLen) {
+                // check for identical character or a wildcard '?'
+                if (patIterator < patLen && ( pattern.charAt(patIterator) == text.charAt(textIterator) || pattern.charAt(patIterator) == '?')) {
+                    textIterator = textIterator + 1;
+                    patIterator = patIterator + 1;
+                } else {
+                    if (patIterator == patLen) {
+                        // pattern found at textIterator - patIterator
+                        return textIterator - patIterator;
+                    }
+                    else if (patIterator > 0) {
+                        // Adjust patIterator based on the Partial Match Table
+                        patIterator = pmt[patIterator - 1];
+                    }
+                    else {
+                        // moving towards next character
+                        textIterator++;
+                    }
                 }
             }
-        }
 
-        return (patIterator == patLen) ? textIterator - patIterator : -1;
+            // Return the index of the first occurrence of the pattern in the text,
+            // or -1 if the pattern is not found.
+            return (patIterator == patLen) ? textIterator - patIterator : -1;
+        }
     }
 
     /**
@@ -58,7 +70,6 @@ public class StringSearch extends AbstractStringSearch {
         int patLen = pattern.length();
         pmt = new int[patLen];
         int patIterator = 1;
-
         int len = 0;
 
         while (patIterator < patLen) {
